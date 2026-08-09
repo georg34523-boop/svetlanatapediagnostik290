@@ -17,9 +17,8 @@
     'https://connect.facebook.net/en_US/fbevents.js');
     fbq('init', '1548773689373078');
     fbq('track', 'PageView');
-    // ВАЖЛИВО: Purchase більше НЕ спрацьовує тут автоматично.
-    // Він відправляється у скрипті нижче — тільки після підтвердження оплати
-    // і з реальною сумою. Див. функцію firePurchase().
+    // Purchase НЕ спрацьовує тут. Він відправляється у скрипті нижче —
+    // тільки після підтвердження оплати і з реальною сумою. Див. firePurchase().
     </script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=1548773689373078&ev=PageView&noscript=1"/></noscript>
@@ -33,14 +32,14 @@
         body {
             font-family: 'Montserrat', sans-serif;
             background: linear-gradient(135deg, #0b0d12 0%, #1a1d26 100%);
-            color: #ffffff;
+            color: #fff;
             min-height: 100vh;
         }
 
         .success-card {
             background: linear-gradient(145deg, #13161c 0%, #0f1116 100%);
             border: 1px solid #2d323e;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,.5);
         }
 
         .success-icon {
@@ -48,8 +47,14 @@
             animation: pulse-green 2s infinite;
         }
         @keyframes pulse-green {
-            0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+            0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,.4); }
             50% { box-shadow: 0 0 0 20px rgba(16,185,129,0); }
+        }
+
+        .tariff-chip {
+            background: rgba(225,48,48,.12);
+            border: 1px solid rgba(225,48,48,.45);
+            color: #fff;
         }
 
         .telegram-btn {
@@ -57,15 +62,13 @@
             transition: all .3s ease;
             animation: pulse-blue 2s infinite;
         }
-        .telegram-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(0,136,204,0.4); }
+        .telegram-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(0,136,204,.4); }
         @keyframes pulse-blue {
-            0%,100% { box-shadow: 0 10px 30px rgba(0,136,204,0.3); }
-            50% { box-shadow: 0 10px 40px rgba(0,136,204,0.5); }
+            0%,100% { box-shadow: 0 10px 30px rgba(0,136,204,.3); }
+            50% { box-shadow: 0 10px 40px rgba(0,136,204,.5); }
         }
 
-        .ghost-btn {
-            background: transparent; border: 1.5px solid #4a5162; transition: all .3s ease;
-        }
+        .ghost-btn { background: transparent; border: 1.5px solid #4a5162; transition: all .3s ease; }
         .ghost-btn:hover { border-color: #fff; background: rgba(255,255,255,.05); }
 
         .step-number { background: linear-gradient(135deg, #E13030 0%, #b91c1c 100%); }
@@ -92,20 +95,26 @@
             <i class="fa-solid fa-check text-white text-3xl md:text-4xl"></i>
         </div>
 
-        <h1 class="text-2xl md:text-3xl font-bold mb-4">Оплата пройшла успішно!</h1>
+        <h1 class="text-2xl md:text-3xl font-bold mb-3">Оплата пройшла успішно!</h1>
 
-        <p class="text-gray-400 mb-8">
-            Дякуємо за довіру! Тепер перейдіть у Telegram-бот, щоб розпочати діагностику.
+        <!-- Який саме тариф куплено -->
+        <div id="tariff-chip" class="tariff-chip hidden inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs md:text-sm font-bold mb-5">
+            <i id="tariff-icon" class="fa-solid fa-video"></i>
+            <span id="tariff-label"></span>
+        </div>
+
+        <p id="lead-text" class="text-gray-400 mb-8">
+            Дякуємо за довіру! Тепер перейдіть у Telegram — там продовжимо.
         </p>
 
-        <!-- Стан очікування -->
+        <!-- Очікування -->
         <div id="loading-state" class="mb-8">
             <div class="loading-spinner mx-auto mb-4"></div>
             <p class="text-gray-400 text-sm">Генеруємо ваше персональне посилання...</p>
             <p id="loading-hint" class="text-gray-600 text-xs mt-2">Це може зайняти до хвилини. Не закривайте сторінку.</p>
         </div>
 
-        <!-- Успіх: персональне посилання -->
+        <!-- Успіх -->
         <div id="bot-link-container" class="hidden mb-8">
             <a id="bot-link" href="#" target="_blank"
                class="telegram-btn inline-flex items-center justify-center gap-3 text-white text-lg font-bold py-4 px-8 rounded-full w-full">
@@ -114,24 +123,24 @@
             </a>
         </div>
 
-        <!-- Fallback: токен не знайдено -->
+        <!-- Fallback -->
         <div id="fallback-container" class="hidden mb-8">
             <div class="bg-yellow-500/10 border border-yellow-500/40 rounded-2xl p-5 mb-5 text-left">
                 <p class="text-yellow-400 font-bold mb-2 flex items-center gap-2">
                     <i class="fa-solid fa-circle-exclamation"></i> Оплата пройшла, доступ ще формується
                 </p>
                 <p class="text-gray-300 text-sm leading-relaxed mb-3">
-                    Ваші гроші на місці — з оплатою все гаразд. Просто натисніть кнопку нижче і напишіть боту «Старт»,
-                    ми активуємо доступ вручну протягом кількох хвилин.
+                    Ваші гроші на місці — з оплатою все гаразд. Натисніть кнопку нижче, напишіть боту «Старт»
+                    і надішліть номер замовлення. Ми активуємо доступ вручну протягом кількох хвилин.
                 </p>
-                <p class="text-gray-400 text-xs mb-1">Номер вашого замовлення (надішліть його в чат):</p>
+                <p class="text-gray-400 text-xs mb-1">Номер вашого замовлення:</p>
                 <div class="order-box" id="order-box">—</div>
             </div>
 
             <a id="fallback-link" href="#" target="_blank"
                class="telegram-btn inline-flex items-center justify-center gap-3 text-white text-lg font-bold py-4 px-8 rounded-full w-full mb-3">
                 <i class="fa-brands fa-telegram text-2xl"></i>
-                Написати в Telegram-бот
+                Написати в Telegram
             </a>
 
             <button onclick="retry()" class="ghost-btn text-white text-sm font-bold py-3 px-6 rounded-full w-full">
@@ -139,22 +148,10 @@
             </button>
         </div>
 
-        <!-- Кроки -->
+        <!-- Кроки (підставляються під тариф) -->
         <div class="text-left space-y-4 mb-8">
             <h3 class="text-lg font-bold text-center mb-4">Що далі?</h3>
-
-            <div class="flex items-start gap-4">
-                <div class="step-number w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">1</div>
-                <p class="text-gray-300">Натисніть кнопку вище і перейдіть у Telegram-бот</p>
-            </div>
-            <div class="flex items-start gap-4">
-                <div class="step-number w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">2</div>
-                <p class="text-gray-300">Натисніть «Старт» у боті — ваш доступ активується автоматично</p>
-            </div>
-            <div class="flex items-start gap-4">
-                <div class="step-number w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">3</div>
-                <p class="text-gray-300">Далі бот підкаже, які фото надіслати та як обрати час</p>
-            </div>
+            <div id="steps" class="space-y-4"></div>
         </div>
 
         <p class="text-gray-500 text-sm">
@@ -172,34 +169,106 @@
         // Робочий бот. У БД: svitlana_gavriluk_bot / «Діагностика Світлани» / is_active = true
         const BOT_USERNAME = 'svitlana_gavriluk_bot';
 
-        // Куди вести людину, якщо токен не згенерувався.
-        // TODO: замінити на акаунт живого менеджера (напр. 'svitlana_manager'),
-        // щоб людина одразу писала людині, а не в бота.
+        // Куди вести, якщо токен не згенерувався.
+        // TODO: замінити на акаунт живого менеджера — людині у цій ситуації
+        // потрібна людина, а не бот.
         const SUPPORT_USERNAME = 'svitlana_gavriluk_bot';
 
-        // Скільки чекати токен: 40 спроб × 2 сек = до 80 секунд
-        const MAX_ATTEMPTS = 40;
+        const MAX_ATTEMPTS = 40;      // 40 × 2 сек = до 80 секунд очікування
         const ATTEMPT_DELAY = 2000;
+
+        // Тарифи. Ключ — сума платежу.
+        const TARIFFS = {
+            790: {
+                key: 'zoom',
+                label: 'Жива діагностика · Zoom 45–60 хв',
+                icon: 'fa-video',
+                lead: 'Дякуємо за довіру! Наступний крок — узгодити зручний час зустрічі. Перейдіть у Telegram.',
+                steps: [
+                    'Натисніть кнопку вище і перейдіть у Telegram-бот',
+                    'Натисніть «Старт» — ваш доступ активується автоматично',
+                    'Оберіть зручний день і час зустрічі у Zoom',
+                    'Надішліть кілька фото обличчя, щоб Світлана підготувалась заздалегідь',
+                    'У призначений час зустрічаємось у Zoom на 45–60 хвилин'
+                ]
+            },
+            390: {
+                key: 'text',
+                label: 'Текстовий розбір · голосові та відео',
+                icon: 'fa-comment-dots',
+                lead: 'Дякуємо за довіру! Тепер перейдіть у Telegram-бот — саме там відбудеться ваш розбір.',
+                steps: [
+                    'Натисніть кнопку вище і перейдіть у Telegram-бот',
+                    'Натисніть «Старт» — ваш доступ активується автоматично',
+                    'Надішліть фото обличчя та заповніть коротку анкету',
+                    'Світлана особисто запише вам розбір голосовими та відео'
+                ]
+            }
+        };
+
+        const GENERIC_STEPS = [
+            'Натисніть кнопку вище і перейдіть у Telegram-бот',
+            'Натисніть «Старт» — ваш доступ активується автоматично',
+            'Далі бот підкаже, що робити за вашим форматом діагностики'
+        ];
         // ==================================================
 
         const urlParams = new URLSearchParams(window.location.search);
 
-        // orderReference: спочатку з URL (WayForPay returnMethod=GET), потім з localStorage (ставить лендинг)
+        // Номер замовлення: спочатку з URL (WayForPay returnMethod=GET),
+        // потім з localStorage — його кладе лендинг перед переходом на оплату.
         let orderReference = urlParams.get('orderReference') || localStorage.getItem('pending_order_id') || '';
 
-        // Сума: з URL, потім з localStorage (ставить лендинг), потім null — щоб не слати вигадану
+        // Сума: з URL, потім з localStorage. Пізніше уточнюється з бази.
         let paidAmount = parseFloat(urlParams.get('amount') || localStorage.getItem('pending_amount') || '') || null;
 
-        let purchaseFired = false;
+        // Статус від WayForPay. 'Approved' = оплата підтверджена.
+        const wfpStatus = urlParams.get('transactionStatus') || '';
 
-        function firePurchase(amountFromDb) {
-            if (purchaseFired) return;
+        let purchaseFired = false;
+        let tariffRendered = false;
+
+        function getTariff(amount) {
+            const a = Math.round(parseFloat(amount));
+            return TARIFFS[a] || null;
+        }
+
+        function renderTariff(amount) {
+            if (tariffRendered) return;
+            const t = getTariff(amount);
+
+            const stepsBox = document.getElementById('steps');
+            const list = t ? t.steps : GENERIC_STEPS;
+            stepsBox.innerHTML = list.map(function (text, i) {
+                return '<div class="flex items-start gap-4">' +
+                       '<div class="step-number w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">' + (i + 1) + '</div>' +
+                       '<p class="text-gray-300">' + text + '</p></div>';
+            }).join('');
+
+            if (t) {
+                document.getElementById('tariff-label').textContent = t.label;
+                document.getElementById('tariff-icon').className = 'fa-solid ' + t.icon;
+                document.getElementById('tariff-chip').classList.remove('hidden');
+                document.getElementById('lead-text').textContent = t.lead;
+                tariffRendered = true;
+            }
+        }
+
+        // Purchase — тільки при підтвердженій оплаті:
+        // або знайдено токен (його створює вебхук уже після підтвердження),
+        // або WayForPay прямо повернув transactionStatus=Approved.
+        function firePurchase(amountFromDb, confirmed) {
+            if (purchaseFired || !confirmed) return;
             const value = amountFromDb || paidAmount;
             if (typeof fbq === 'undefined' || !value) return;
+            const t = getTariff(value);
             fbq('track', 'Purchase',
-                { currency: 'UAH', value: parseFloat(value), content_name: 'Діагностика обличчя' },
-                // eventID = номер замовлення. Потрібен, щоб браузерна і серверна (CAPI)
-                // подія не порахувалися двічі.
+                {
+                    currency: 'UAH',
+                    value: parseFloat(value),
+                    content_name: t ? t.label : 'Діагностика обличчя',
+                    content_category: t ? t.key : 'diagnostic'
+                },
                 orderReference ? { eventID: orderReference } : undefined
             );
             purchaseFired = true;
@@ -225,9 +294,7 @@
             document.getElementById('bot-link-container').classList.add('hidden');
             document.getElementById('fallback-container').classList.remove('hidden');
             document.getElementById('order-box').textContent = orderReference || 'номер не визначено';
-            // Оплата фактично пройшла (людину повернув WayForPay), тому подію все одно фіксуємо,
-            // але тільки якщо знаємо реальну суму.
-            firePurchase(null);
+            firePurchase(null, wfpStatus === 'Approved');
         }
 
         function showSuccess(row) {
@@ -236,9 +303,10 @@
             document.getElementById('bot-link-container').classList.remove('hidden');
             document.getElementById('bot-link').href =
                 `https://t.me/${BOT_USERNAME}?start=${encodeURIComponent(row.token)}`;
+            renderTariff(row.amount || paidAmount);
             localStorage.removeItem('pending_order_id');
             localStorage.removeItem('pending_amount');
-            firePurchase(row.amount);
+            firePurchase(row.amount, true); // токен існує => оплата підтверджена
         }
 
         async function init() {
@@ -247,6 +315,10 @@
 
             document.getElementById('fallback-link').href = `https://t.me/${SUPPORT_USERNAME}`;
             document.getElementById('support-link').href = `https://t.me/${SUPPORT_USERNAME}`;
+
+            // Кроки малюємо одразу — по сумі, яку знаємо з лендингу.
+            // Якщо суми немає, покажемо загальні, а потім уточнимо з бази.
+            renderTariff(paidAmount);
 
             loading.classList.remove('hidden');
             document.getElementById('bot-link-container').classList.add('hidden');
