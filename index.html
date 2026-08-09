@@ -1091,6 +1091,13 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.paymentData) {
+                        // Зберігаємо номер замовлення і суму — сторінка thanks.html
+                        // бере їх звідси, якщо WayForPay не передасть orderReference в URL
+                        if (data.paymentData.orderReference) {
+                            localStorage.setItem('pending_order_id', data.paymentData.orderReference);
+                        }
+                        localStorage.setItem('pending_amount', t.amount);
+
                         const form = document.createElement('form');
                         form.method = 'POST';
                         form.action = 'https://secure.wayforpay.com/pay';
